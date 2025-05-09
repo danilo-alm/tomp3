@@ -7,7 +7,7 @@ from typing import Optional
 def setup_logger(
     name: str = "tomp3",
     log_file: Optional[str | Path] = None,
-    max_bytes: int = 5 * 1024 * 1024,  # 5MB
+    max_bytes: int = 5 * 1024 * 1024,
     backup_count: int = 3,
 ) -> logging.Logger:
 
@@ -27,7 +27,6 @@ def setup_logger(
         log_file = Path(log_file)
         log_file.parent.mkdir(parents=True, exist_ok=True)
 
-    # Create rotating file handler
     file_handler = RotatingFileHandler(
         log_file,
         maxBytes=max_bytes,
