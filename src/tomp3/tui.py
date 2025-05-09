@@ -1,12 +1,13 @@
-from rich.console import Console, Group
-from rich.live import Live
-from rich.spinner import Spinner
-from rich.panel import Panel
-from rich.text import Text
 import threading
 import time
-from enum import Enum
 from collections import defaultdict
+from enum import Enum
+
+from rich.console import Console, Group
+from rich.live import Live
+from rich.panel import Panel
+from rich.spinner import Spinner
+from rich.text import Text
 
 
 class FileStatus(Enum):
@@ -16,11 +17,11 @@ class FileStatus(Enum):
 
 
 class ConversionUI:
-    def __init__(self, visible_limit=7):
+    def __init__(self, visible_limit: int = 7) -> None:
         self.console = Console()
         self.visible_limit = visible_limit
-        self._converting_files = []  # (filename, FileStatus)
-        self._lock = threading.RLock()  # For accessing file list
+        self._converting_files: list[tuple[str, FileStatus]] = []
+        self._lock = threading.RLock()  # For file list
         self._running = True
 
         self._live = Live(self._render_view(), refresh_per_second=2, screen=True)
@@ -28,11 +29,11 @@ class ConversionUI:
         self._thread = threading.Thread(target=self._run_live_loop, daemon=True)
         self._thread.start()
 
-    def add_file(self, filename: str):
+    def add_file(self, filename: str) -> None:
         with self._lock:
             self._converting_files.append((filename, FileStatus.CONVERTING))
-    
-    def update_file_status(self, filename: str, status: FileStatus):
+
+    def update_file_status(self, filename: str, status: FileStatus) -> None:
         with self._lock:
             for i, (fname, _) in enumerate(self._converting_files):
                 if fname == filename:
@@ -40,45 +41,43 @@ class ConversionUI:
                     break
             self._sort_converting_files()
 
-    def stop(self):
+    def stop(self) -> dict[FileStatus, list[str]]:
         self._running = False
         self._live.stop()
         return self._get_report()
 
-    def _render_view(self):
+    def _render_view(self) -> Panel:
         with self._lock:
             latest = self._converting_files[-self.visible_limit:]
-            items = []
+            items: list[ Text | Spinner ] = []
             for filename, status in latest:
                 match status:
                     case FileStatus.CONVERTED:
-                        item = Text(f"✓ {filename}", style="green")
+                        items.append(Text(f"✓ {filename}", style="green"))
                     case FileStatus.CONVERTING:
-                        item = Spinner("dots", text=f"Converting {filename}",
-                                       style="green")
+                        items.append(Spinner("dots", text=f"Converting {filename}",
+                                       style="green"))
                     case FileStatus.ERROR:
-                        item = Text(f"✗ {filename}", style="red")
-                items.append(item)
+                        items.append(Text(f"✗ {filename}", style="red"))
 
         return Panel(
-            Group(*items), title="Current Conversions",border_style="cyan"
+            Group(*items), title="Current Conversions",border_style="cyan",
         )
 
-    def _run_live_loop(self):
+    def _run_live_loop(self) -> None:
         with self._live:
             while self._running:
                 self._live.update(self._render_view())
                 time.sleep(0.5)
 
-    def _sort_converting_files(self):
+    def _sort_converting_files(self) -> None:
         with self._lock:
             self._converting_files.sort(
-                key=lambda x: x[1] == FileStatus.CONVERTING
+                key=lambda x: x[1] == FileStatus.CONVERTING,
             )
 
-    def _get_report(self):
+    def _get_report(self) -> dict[FileStatus, list[str]]:
         d = defaultdict(list)
         for (fname, status) in self._converting_files:
             d[status].append(fname)
-        return d
-        
+        return dict(d)
