@@ -3,6 +3,8 @@ import multiprocessing
 from pathlib import Path
 from typing import NamedTuple
 
+from tomp3 import logger
+
 
 class Args(NamedTuple):
     input: Path
@@ -67,11 +69,13 @@ def parse_args() -> Args:
     )
 
     args = parser.parse_args()
+    logger.debug("Parsed command line arguments")
 
     target_extensions = {
         f".{ext.strip().lower()}" 
         for ext in args.target_extensions.split(",")
     }
+    logger.debug(f"Target extensions: {target_extensions}")
 
     return Args(
         input=args.input,
