@@ -2,6 +2,7 @@ import threading
 import time
 from collections import defaultdict
 from enum import Enum
+from pathlib import Path
 
 from rich.console import Console, Group
 from rich.live import Live
@@ -20,7 +21,7 @@ class ConversionUI:
     def __init__(self, visible_limit: int = 7) -> None:
         self.console = Console()
         self.visible_limit = visible_limit
-        self._converting_files: list[tuple[str, FileStatus]] = []
+        self._converting_files: list[tuple[Path, FileStatus]] = []
         self._lock = threading.RLock()  # For file list
         self._running = True
 
@@ -29,19 +30,19 @@ class ConversionUI:
         self._thread = threading.Thread(target=self._run_live_loop, daemon=True)
         self._thread.start()
 
-    def add_file(self, filename: str) -> None:
+    def add_file(self, fpath: Path) -> None:
         with self._lock:
-            self._converting_files.append((filename, FileStatus.CONVERTING))
+            self._converting_files.append((fpath, FileStatus.CONVERTING))
 
-    def update_file_status(self, filename: str, status: FileStatus) -> None:
+    def update_file_status(self, fpath_to_update: Path, status: FileStatus) -> None:
         with self._lock:
-            for i, (fname, _) in enumerate(self._converting_files):
-                if fname == filename:
-                    self._converting_files[i] = (fname, status)
+            for i, (fpath, _) in enumerate(self._converting_files):
+                if fpath == fpath_to_update:
+                    self._converting_files[i] = (fpath, status)
                     break
             self._sort_converting_files()
 
-    def stop(self) -> dict[FileStatus, list[str]]:
+    def stop(self) -> dict[FileStatus, list[Path]]:
         self._running = False
         self._live.stop()
         return self._get_report()
@@ -50,7 +51,8 @@ class ConversionUI:
         with self._lock:
             latest = self._converting_files[-self.visible_limit:]
             items: list[ Text | Spinner ] = []
-            for filename, status in latest:
+            for fpath, status in latest:
+                filename = fpath.name
                 match status:
                     case FileStatus.CONVERTED:
                         items.append(Text(f"✓ {filename}", style="green"))
@@ -76,8 +78,8 @@ class ConversionUI:
                 key=lambda x: x[1] == FileStatus.CONVERTING,
             )
 
-    def _get_report(self) -> dict[FileStatus, list[str]]:
+    def _get_report(self) -> dict[FileStatus, list[Path]]:
         d = defaultdict(list)
-        for (fname, status) in self._converting_files:
-            d[status].append(fname)
+        for (fpath, status) in self._converting_files:
+            d[status].append(fpath)
         return dict(d)
