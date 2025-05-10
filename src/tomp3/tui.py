@@ -2,7 +2,7 @@ import shutil
 import threading
 import time
 from collections import defaultdict
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 from typing import Optional
 
@@ -15,10 +15,10 @@ from rich.text import Text
 
 
 class FileStatus(Enum):
-    WAITING = 1
-    CONVERTING = 2
-    CONVERTED = 3
-    ERROR = 4
+    WAITING = auto()
+    CONVERTING = auto()
+    CONVERTED = auto()
+    ERROR = auto()
 
 
 FileListType = list[tuple[Path, FileStatus]]
