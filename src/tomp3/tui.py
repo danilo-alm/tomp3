@@ -42,7 +42,7 @@ class _FilesView:
     def set_files(self, files: list[Path]) -> None:
         self._files = [(f, FileStatus.WAITING) for f in files]
         self.total = len(files)
-        self.remaining = len(files)
+        self.finished = 0
     
     def update_file_status(self, fpath: Path, status: FileStatus) -> None:
         self._lock.acquire()
@@ -59,7 +59,7 @@ class _FilesView:
         self._files.insert(0, (fpath, status))
 
         if status == FileStatus.CONVERTED or status == FileStatus.ERROR:
-            self.remaining -= 1
+            self.finished += 1
         
         self._sort_visible()
         self._lock.release()
@@ -68,7 +68,7 @@ class _FilesView:
         return self._files[:self._visible]
     
     def get_status(self) -> tuple[int, int]:
-        return self.total, self.remaining
+        return self.total, self.finished
     
     def get_report(self) -> ReportType:
         d = defaultdict(list)
@@ -110,7 +110,6 @@ class ConversionUI:
 
     def _render_view(self) -> Panel:
         items: list[ Text | Spinner ] = []
-        total, remaining = 0, 0
 
         for fpath, status in self._file_view.get_visible():
             filename = fpath.name
@@ -123,7 +122,7 @@ class ConversionUI:
                     items.append(Spinner("dots", text=f"{filename}", style="green"))
                 case FileStatus.ERROR:
                     items.append(Text(f"✗ {filename}", style="red"))
-        total, remaining = self._file_view.get_status()
+        total, finished = self._file_view.get_status()
 
         cols, _ = shutil.get_terminal_size()
         content = (
@@ -132,11 +131,12 @@ class ConversionUI:
             else Group(*items[::-1])
         )
         
+        percent = 100 * finished / total if total else 0
         return Panel(
             content ,
             title="Current Conversions",
             border_style="cyan",
-            subtitle=f"Total: {total} | Remaining: {remaining}",
+            subtitle=f"{percent:.1f}% Complete ({finished}/{total})",
         )
 
     def _run_live_loop(self) -> None:
