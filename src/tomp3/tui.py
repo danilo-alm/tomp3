@@ -67,6 +67,7 @@ class ConversionUI:
         self._file_view = _FilesView([], visible_files)
         self._console = Console()
         self._visible_files = visible_files
+        self._content_needs_update = False
         self._start()
     
     def stop(self) -> Optional[ReportType]:
@@ -76,13 +77,15 @@ class ConversionUI:
 
     def set_file_list(self, fpaths: list[Path]) -> None:
         self._file_view.set_files(fpaths)
+        self._content_needs_update = True
     
     def update_file_status(self, fname: Path, status: FileStatus) -> None:
-        return self._file_view.update_file_status(fname, status)
+        self._file_view.update_file_status(fname, status)
+        self._content_needs_update = True
 
     def _start(self) -> None:
         self._running = True
-        self._live = Live(self._render_view(), refresh_per_second=2, screen=False)
+        self._live = Live(self._render_view(), refresh_per_second=7, screen=False)
         self._thread = threading.Thread(target=self._run_live_loop, daemon=True)
         self._thread.start()
 
@@ -120,5 +123,7 @@ class ConversionUI:
     def _run_live_loop(self) -> None:
         with self._live:
             while self._running:
-                self._live.update(self._render_view())
+                if self._content_needs_update:
+                    self._live.update(self._render_view())
+                    self._content_needs_update = False
                 time.sleep(0.5)
