@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import ffmpeg
+
 from tomp3 import logger
 from tomp3.args import Args, parse_args
 from tomp3.converter import Converter
@@ -44,6 +46,7 @@ def handle_directory(
         if f.is_file()
         and f.suffix.lower() in target_extensions
     )
+    tui.set_file_list(fpaths)
     logger.info(f"Found {len(fpaths)} files to convert.")
 
     # Use later for estimating remaining time
@@ -51,12 +54,12 @@ def handle_directory(
 
     for fpath in fpaths:
         try:
-            tui.add_file(fpath)
+            tui.update_file_status(fpath, FileStatus.CONVERTING)
             handle_file(converter, fpath)
             tui.update_file_status(fpath, FileStatus.CONVERTED)
-        except Exception as e:
+        except ffmpeg.Error as e:
             tui.update_file_status(fpath, FileStatus.ERROR)
-            logger.error(f"Error converting {fpath}: {e}")
+            logger.exception(e)
 
 
 if __name__ == "__main__":
