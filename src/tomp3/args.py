@@ -43,8 +43,8 @@ def parse_args() -> Args:
     parser.add_argument(
         "--target-extensions",
         type=str,
-        default="mp3",
-        help="Comma-separated list of file extensions to convert (default: mp3)"
+        default="flac,wav",
+        help="Comma-separated list of file extensions to convert (default: flac,wav)"
     )
 
     cores_default = max(1, multiprocessing.cpu_count() // 2)
