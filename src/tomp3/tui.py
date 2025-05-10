@@ -35,9 +35,12 @@ class _FilesView:
     }
 
     def __init__(self, files: list[Path], visible: int) -> None:
-        self._files = [(f, FileStatus.WAITING) for f in files]
+        self.set_files(files)
         self._visible = visible
         self._lock = threading.RLock()
+
+    def set_files(self, files: list[Path]) -> None:
+        self._files = [(f, FileStatus.WAITING) for f in files]
         self.total = len(files)
         self.remaining = len(files)
     
@@ -94,7 +97,7 @@ class ConversionUI:
         return self._file_view.get_report()
 
     def set_file_list(self, fpaths: list[Path]) -> None:
-        self._file_view = _FilesView(fpaths, self._visible_files)
+        self._file_view.set_files(fpaths)
     
     def update_file_status(self, fname: Path, status: FileStatus) -> None:
         return self._file_view.update_file_status(fname, status)
