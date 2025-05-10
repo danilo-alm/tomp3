@@ -4,6 +4,7 @@ from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 
+from rich.align import Align
 from rich.console import Console, Group
 from rich.live import Live
 from rich.panel import Panel
@@ -21,14 +22,21 @@ class ConversionUI:
     def __init__(self, visible_limit: int = 7) -> None:
         self.console = Console()
         self.visible_limit = visible_limit
+
         self._converting_files: list[tuple[Path, FileStatus]] = []
         self._lock = threading.RLock()  # For file list
         self._running = True
+        self._total_files = 0
+        self._remaining_files = 0
 
         self._live = Live(self._render_view(), refresh_per_second=2, screen=True)
 
         self._thread = threading.Thread(target=self._run_live_loop, daemon=True)
         self._thread.start()
+    
+    def set_total_files(self, total_files: int) -> None:
+        self._total_files = total_files
+        self._remaining_files = total_files
 
     def add_file(self, fpath: Path) -> None:
         with self._lock:
@@ -36,10 +44,19 @@ class ConversionUI:
 
     def update_file_status(self, fpath_to_update: Path, status: FileStatus) -> None:
         with self._lock:
+            found = False
             for i, (fpath, _) in enumerate(self._converting_files):
                 if fpath == fpath_to_update:
                     self._converting_files[i] = (fpath, status)
+                    found = True
                     break
+                
+            if not found:
+                raise ValueError(f"File {fpath_to_update} not found in the list.")
+            
+            if status == FileStatus.CONVERTED or status == FileStatus.ERROR:
+                self._remaining_files -= 1
+
             self._sort_converting_files()
 
     def stop(self) -> dict[FileStatus, list[Path]]:
@@ -62,8 +79,12 @@ class ConversionUI:
                     case FileStatus.ERROR:
                         items.append(Text(f"✗ {filename}", style="red"))
 
+        content = Align.center(Group(*items), vertical="middle")
         return Panel(
-            Group(*items), title="Current Conversions",border_style="cyan",
+            content,
+            title="Current Conversions",
+            border_style="cyan",
+            subtitle=f"Total: {self._total_files} | Remaining: {self._remaining_files}",
         )
 
     def _run_live_loop(self) -> None:
