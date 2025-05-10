@@ -7,9 +7,15 @@ from tomp3 import logger
 
 
 class Converter:
-    def __init__(self, output_dir: Optional[Path], bitrate: str) -> None:
+    def __init__(
+            self,
+            output_dir: Optional[Path],
+            bitrate: str,
+            cleanup_after_conversion: bool,
+        ) -> None:
         self.output_dir = output_dir
         self.bitrate = bitrate
+        self.cleanup_after_conversion = cleanup_after_conversion
 
         if self.output_dir is not None:
             if self.output_dir.is_file():
@@ -33,6 +39,11 @@ class Converter:
             )
             ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
             logger.info(f"Converted {input_path} to {output_path}")
+
+            if self.cleanup_after_conversion:
+                input_path.unlink(missing_ok=True)
+                logger.info(f"Deleted original file: {input_path}")
+
             return output_path
 
         except ffmpeg.Error as e:
