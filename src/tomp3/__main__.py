@@ -5,12 +5,16 @@ import ffmpeg
 from tomp3 import logger
 from tomp3.args import Args, parse_args
 from tomp3.converter import Converter
+from tomp3.logging import add_console_handler
 from tomp3.path_resolver import OutputPathResolver
 from tomp3.tui import ConversionUI, FileStatus
 
 
 def main() -> None:
     args: Args = parse_args()
+    if args.dry_run:
+        add_console_handler(logger)
+        
     opr = OutputPathResolver(args.input, args.output_dir)
     converter = Converter(
         output_path_resolver=opr,
