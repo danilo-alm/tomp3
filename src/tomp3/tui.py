@@ -1,7 +1,7 @@
 import shutil
 import threading
 import time
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional
@@ -26,63 +26,41 @@ ReportType = dict[FileStatus, list[Path]]
 
 
 class _FilesView:
-
-    SORTING_PRIORITY = {
-        FileStatus.WAITING: 3,
-        FileStatus.CONVERTING: 1,
-        FileStatus.CONVERTED: 2,
-        FileStatus.ERROR: 2
-    }
-
     def __init__(self, files: list[Path], visible: int) -> None:
         self.set_files(files)
         self._visible = visible
         self._lock = threading.RLock()
 
     def set_files(self, files: list[Path]) -> None:
-        self._files = [(f, FileStatus.WAITING) for f in files]
+        self._files = OrderedDict((f, FileStatus.WAITING) for f in files)
         self.total = len(files)
         self.finished = 0
     
     def update_file_status(self, fpath: Path, status: FileStatus) -> None:
-        self._lock.acquire()
-        idx = -1
-        for i, (_fpath, _) in enumerate(self._files):
-            if _fpath == fpath:
-                idx = i
-                break
-        
-        if idx == -1:
-            raise ValueError(f"File {fpath} not found in the list.")
-        
-        self._files.pop(idx)
-        self._files.insert(0, (fpath, status))
-
-        if status == FileStatus.CONVERTED or status == FileStatus.ERROR:
-            self.finished += 1
-        
-        self._sort_visible()
-        self._lock.release()
+        with self._lock:
+            if fpath not in self._files:
+                raise ValueError(f"File {fpath} not found in the list.")
+            
+            self._files[fpath] = status
+            self._files.move_to_end(fpath, last=False)
+            
+            if status in {FileStatus.CONVERTED, FileStatus.ERROR}:
+                self.finished += 1
     
     def get_visible(self) -> FileListType:
-        return self._files[:self._visible]
+        with self._lock:
+            return list(self._files.items())[:self._visible]
     
     def get_status(self) -> tuple[int, int]:
         return self.total, self.finished
     
     def get_report(self) -> ReportType:
         d = defaultdict(list)
-        for (fpath, status) in self._files:
-            d[status].append(fpath)
-        return dict(d)
-    
-    def _sort_visible(self) -> None:
         with self._lock:
-            self._files[:self._visible] = sorted(
-                self._files[:self._visible],
-                key=lambda x: self.SORTING_PRIORITY[x[1]]
-            )
-    
+            for (fpath, status) in self._files.items():
+                d[status].append(fpath)
+        return dict(d)
+
 
 class ConversionUI:
     def __init__(self, visible_files: int = 20) -> None:
