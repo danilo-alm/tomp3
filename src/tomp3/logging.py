@@ -1,6 +1,8 @@
 import logging
+import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from types import TracebackType
 from typing import Optional
 
 
@@ -38,5 +40,18 @@ def setup_logger(
 
     logger.handlers.clear()
     logger.addHandler(file_handler)
+
+    def log_uncaught_exceptions(
+            exc_type: type[BaseException],
+            exc_value: BaseException,
+            exc_traceback: Optional[TracebackType],
+        ) -> None:
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logger.error("Uncaught exception",
+                     exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = log_uncaught_exceptions
 
     return logger
