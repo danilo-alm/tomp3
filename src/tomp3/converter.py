@@ -11,7 +11,7 @@ class Converter:
                 raise ValueError("Output directory cannot be a file.")
             self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def to_mp3(self, input_path: Path) -> Path:
+    def to_mp3(self, input_path: Path, bitrate: str) -> Path:
         output_path = self._get_output_path(input_path)
 
         try:
@@ -20,7 +20,7 @@ class Converter:
                 stream,
                 str(output_path),
                 acodec='libmp3lame',
-                audio_bitrate='320k',
+                audio_bitrate=bitrate,
                 ar='44100',  # Sample rate
                 ac=2,  # Number of audio channels (stereo)
                 **{'q:a': '0'}  # Highest quality setting for LAME
