@@ -7,7 +7,7 @@ from typing import Optional
 
 def setup_logger(
     name: str = "tomp3",
-    log_file: Path = Path.home() / "tomp3.log",
+    log_file: Path = Path.home() / ".tomp3.log",
     dry_run: bool = False,
     exceptions: bool = True
 ) -> logging.Logger:
