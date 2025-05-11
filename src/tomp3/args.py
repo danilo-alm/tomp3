@@ -12,6 +12,9 @@ class Args(NamedTuple):
     cpus: int
     bitrate: str
     dry_run: bool
+    mono: bool
+    quality: int
+    sample_rate: int
 
 
 def parse_args() -> Args:
@@ -54,16 +57,35 @@ def parse_args() -> Args:
     )
 
     parser.add_argument(
-        "--bitrate",
-        type=str,
-        default="320k",
-        help="Output bitrate (default: 320k)"
-    )
-
-    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show what would be converted without actually converting"
+    )
+
+    parser.add_argument(
+        "--mono",
+        action="store_true",
+        help="Convert to mono audio (default: stereo)"
+    )
+
+    parser.add_argument(
+        "--quality",
+        type=int,
+        default=0,
+        help="Quality setting for LAME (0-9, where 0 is best quality, default: 0)"
+    )
+    
+    parser.add_argument(
+        "--sample-rate",
+        type=int,
+        default=44100,
+        help="Sample rate for output audio (default: 44100)"
+    )
+
+    parser.add_argument(
+        "--bitrate",
+        type=str,
+        help="Output bitrate (no default for Variable Bit Rate)"
     )
 
     args = parser.parse_args()
@@ -80,5 +102,8 @@ def parse_args() -> Args:
         target_extensions=target_extensions,
         cpus=args.cpus,
         bitrate=args.bitrate,
-        dry_run=args.dry_run
+        dry_run=args.dry_run,
+        mono=args.mono,
+        quality=args.quality,
+        sample_rate=args.sample_rate
     )

@@ -30,7 +30,10 @@ def build_converter(args: Args, logger: logging.Logger) -> Converter:
         output_path_resolver=OutputPathResolver(args.input, args.output_dir),
         bitrate=args.bitrate,
         cleanup_after_conversion=args.delete,
-        logger=logger
+        logger=logger,
+        quality=args.quality,
+        mono=args.mono,
+        sample_rate=args.sample_rate
     )
 
 
