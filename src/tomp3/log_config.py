@@ -8,7 +8,7 @@ from typing import Optional
 def setup_logger(
     name: str = "tomp3",
     log_file: Path = Path.home() / "tomp3.log",
-    console: bool = False,
+    dry_run: bool = False,
     exceptions: bool = True
 ) -> logging.Logger:
 
@@ -27,7 +27,7 @@ def setup_logger(
     logger.handlers.clear()
     logger.addHandler(file_handler)
 
-    if console:
+    if dry_run:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         formatter = logging.Formatter(
@@ -36,6 +36,7 @@ def setup_logger(
         )
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
+        logger.info("DRY RUNNING!")
     
     if exceptions:
         sys.excepthook = lambda exc_type, exc_value, exc_traceback: _exception_handling(
