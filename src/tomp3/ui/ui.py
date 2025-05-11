@@ -1,8 +1,6 @@
 import shutil
 import threading
 import time
-from collections import OrderedDict, defaultdict
-from enum import Enum, auto
 from pathlib import Path
 from typing import Optional
 
@@ -13,58 +11,14 @@ from rich.panel import Panel
 from rich.spinner import Spinner
 from rich.text import Text
 
-
-class FileStatus(Enum):
-    WAITING = auto()
-    CONVERTING = auto()
-    CONVERTED = auto()
-    ERROR = auto()
-
-
-FileListType = list[tuple[Path, FileStatus]]
-ReportType = dict[FileStatus, list[Path]]
-
-
-class _FilesView:
-    def __init__(self, files: list[Path], visible: int) -> None:
-        self.set_files(files)
-        self._visible = visible
-        self._lock = threading.RLock()
-
-    def set_files(self, files: list[Path]) -> None:
-        self._files = OrderedDict((f, FileStatus.WAITING) for f in files)
-        self.total = len(files)
-        self.finished = 0
-    
-    def update_file_status(self, fpath: Path, status: FileStatus) -> None:
-        with self._lock:
-            if fpath not in self._files:
-                raise ValueError(f"File {fpath} not found in the list.")
-            
-            self._files[fpath] = status
-            self._files.move_to_end(fpath, last=False)
-            
-            if status in {FileStatus.CONVERTED, FileStatus.ERROR}:
-                self.finished += 1
-    
-    def get_visible(self) -> FileListType:
-        with self._lock:
-            return list(self._files.items())[:self._visible]
-    
-    def get_status(self) -> tuple[int, int]:
-        return self.total, self.finished
-    
-    def get_report(self) -> ReportType:
-        d = defaultdict(list)
-        with self._lock:
-            for (fpath, status) in self._files.items():
-                d[status].append(fpath)
-        return dict(d)
+from .custom_types import ReportType
+from .file_status import FileStatus
+from .files_view import FilesView
 
 
 class ConversionUI:
     def __init__(self, visible_files: int = 20) -> None:
-        self._file_view = _FilesView([], visible_files)
+        self._file_view = FilesView([], visible_files)
         self._console = Console()
         self._visible_files = visible_files
         self._content_needs_update = False

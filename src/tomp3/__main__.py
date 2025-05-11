@@ -1,25 +1,28 @@
+import logging
 from pathlib import Path
 
 import ffmpeg
 
-from tomp3 import logger
 from tomp3.args import Args, parse_args
 from tomp3.converter import Converter
-from tomp3.logging import add_console_handler
-from tomp3.path_resolver import OutputPathResolver
-from tomp3.tui import ConversionUI, FileStatus
+from tomp3.converter.path_resolver import OutputPathResolver
+from tomp3.log_config import setup_logger
+from tomp3.ui import ConversionUI
+from tomp3.ui.file_status import FileStatus
 
 
 def main() -> None:
     args: Args = parse_args()
-    if args.dry_run:
-        add_console_handler(logger)
+    logger = setup_logger(
+        console=args.dry_run
+    )
         
     opr = OutputPathResolver(args.input, args.output_dir)
     converter = Converter(
         output_path_resolver=opr,
         bitrate=args.bitrate,
-        cleanup_after_conversion=args.delete
+        cleanup_after_conversion=args.delete,
+        logger=logger
     )
 
     if args.input.is_file():
@@ -29,7 +32,8 @@ def main() -> None:
             converter=converter,
             dpath=args.input,
             target_extensions=args.target_extensions,
-            tui=ConversionUI()
+            tui=ConversionUI(),
+            logger=logger
         )
     else:
         raise Exception("Invalid input. Please provide either file or directory.")
@@ -43,6 +47,7 @@ def handle_directory(
         dpath: Path,
         target_extensions: set[str],
         tui: ConversionUI,
+        logger: logging.Logger
     ) -> None:
     logger.info(f"Scanning directory: {dpath}")
     fpaths = list(
