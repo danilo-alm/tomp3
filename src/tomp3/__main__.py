@@ -1,12 +1,11 @@
 import logging
+import subprocess
+import time
 from pathlib import Path
 
-import ffmpeg
-
 from tomp3.args import Args, parse_args
-from tomp3.converter import Converter
-from tomp3.converter.path_resolver import OutputPathResolver
 from tomp3.log_config import setup_logger
+from tomp3.path_resolver import OutputPathResolver
 from tomp3.ui import ConversionUI
 from tomp3.ui.file_status import FileStatus
 
@@ -14,47 +13,93 @@ from tomp3.ui.file_status import FileStatus
 def main() -> None:
     args = parse_args()
     logger = setup_logger(dry_run=args.dry_run)
-
-    converter = build_converter(args, logger)
-
-    if args.input.is_file():
-        convert_single_file(converter, args.input)
-    elif args.input.is_dir():
-        convert_directory(converter, args, logger)
-    else:
-        raise ValueError("Invalid input. Provide a file or directory.")
-
-
-def build_converter(args: Args, logger: logging.Logger) -> Converter:
-    return Converter(
-        output_path_resolver=OutputPathResolver(args.input, args.output_dir),
-        bitrate=args.bitrate,
-        cleanup_after_conversion=args.delete,
-        logger=logger,
-        quality=args.quality,
-        mono=args.mono,
-        sample_rate=args.sample_rate
+    path_resolver = OutputPathResolver(
+        input_root=args.input,
+        output_root=args.output_dir,
     )
+    
+    if args.input.is_dir():
+        handle_directory(args, path_resolver, logger)
 
 
-def convert_single_file(converter: Converter, fpath: Path) -> None:
-    converter.to_mp3(fpath)
-
-
-def convert_directory(converter: Converter, args: Args, logger: logging.Logger) -> None:
+def handle_directory(
+        args: Args,
+        path_resolver: OutputPathResolver,
+        logger: logging.Logger
+    ) -> None:
+    
     tui = ConversionUI()
     fpaths = scan_directory(args.input, args.target_extensions)
     tui.set_file_list(fpaths)
     logger.info(f"Found {len(fpaths)} files to convert in '{args.input}'.")
+    
+    ffmpeg_args = build_ffmpeg_args(args)
+
+    MAX_PROCESSES = args.max_workers
+    running_processes: dict[subprocess.Popen[bytes], Path] = {}
 
     for fpath in fpaths:
-        try:
-            tui.update_file_status(fpath, FileStatus.CONVERTING)
-            converter.to_mp3(fpath)
-            tui.update_file_status(fpath, FileStatus.CONVERTED)
-        except ffmpeg.Error as e:
-            tui.update_file_status(fpath, FileStatus.ERROR)
-            logger.exception(e)
+        while len(running_processes) >= MAX_PROCESSES:
+            for p in list(running_processes):
+                if p.poll() is None:
+                    continue
+
+                success = p.returncode == 0
+                completed_file = running_processes.pop(p)
+
+                tui.update_file_status(
+                    completed_file, 
+                    FileStatus.CONVERTED if success else FileStatus.ERROR
+                )
+                
+                if success and args.delete:
+                    completed_file.unlink()
+            time.sleep(0.1)
+        
+        output_path = path_resolver.resolve(fpath)
+        cmd = ["ffmpeg", "-i", str(fpath), *ffmpeg_args, str(output_path)]
+
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        running_processes[process] = fpath
+        tui.update_file_status(fpath, FileStatus.CONVERTING)
+    
+    # Final cleanup for remaining processes
+    for p, fpath in running_processes.items():
+        p.wait()
+        success = p.returncode == 0
+
+        tui.update_file_status(
+            fpath,
+            FileStatus.CONVERTED if success else FileStatus.ERROR
+        )
+
+        if args.delete and success:
+            fpath.unlink()
+    
+    tui.stop()
+
+
+def build_ffmpeg_args(
+        args: Args,
+    ) -> list[str]:
+    cmd = [
+        "-acodec", "libmp3lame",
+        "-ar", str(args.sample_rate) if args.sample_rate else "44100",
+        "-ac", "1" if args.mono else "2",
+    ]
+
+    if args.bitrate:
+        cmd += ["-b:a", str(args.bitrate)]
+    if args.quality:
+        cmd += ["-q:a", str(args.quality)]
+    if args.overwrite:
+        cmd.append("-y")
+    
+    return cmd
 
 
 def scan_directory(directory: Path, extensions: set[str]) -> list[Path]:

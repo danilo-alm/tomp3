@@ -9,12 +9,13 @@ class Args(NamedTuple):
     output_dir: Path | None
     delete: bool
     target_extensions: set[str]
-    cpus: int
+    max_workers: int
     bitrate: str
     dry_run: bool
     mono: bool
     quality: int
     sample_rate: int
+    overwrite: bool
 
 
 def parse_args() -> Args:
@@ -48,12 +49,12 @@ def parse_args() -> Args:
         help="Comma-separated list of file extensions to convert (default: flac,wav)"
     )
 
-    cores_default = max(1, multiprocessing.cpu_count() // 2)
+    processes_default = max(1, multiprocessing.cpu_count() // 2)
     parser.add_argument(
-        "--cpus",
+        "--max-workers",
         type=int,
-        default=cores_default,
-        help=f"Number of CPU cores to use (default: {cores_default})"
+        default=processes_default,
+        help=f"Number of ffmpeg processes to start (default: {processes_default})"
     )
 
     parser.add_argument(
@@ -88,6 +89,12 @@ def parse_args() -> Args:
         help="Output bitrate (no default for Variable Bit Rate)"
     )
 
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing files"
+    )
+
     args = parser.parse_args()
 
     target_extensions = {
@@ -100,10 +107,11 @@ def parse_args() -> Args:
         output_dir=args.output_dir,
         delete=args.delete,
         target_extensions=target_extensions,
-        cpus=args.cpus,
+        max_workers=args.max_workers,
         bitrate=args.bitrate,
         dry_run=args.dry_run,
         mono=args.mono,
         quality=args.quality,
-        sample_rate=args.sample_rate
+        sample_rate=args.sample_rate,
+        overwrite=args.overwrite
     )
