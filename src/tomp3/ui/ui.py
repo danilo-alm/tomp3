@@ -46,6 +46,10 @@ class ConversionUI:
         if status in {FileStatus.CONVERTED, FileStatus.ERROR}:
             self._progress_tracker.update_progress(fpath)
         self._mark_for_update()
+    
+    def force_update(self) -> None:
+        self._live.update(self._render_view())
+        self._live.refresh()
 
     def _mark_for_update(self) -> None:
         with self._lock:

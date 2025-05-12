@@ -27,6 +27,24 @@ def handle_directory(
         path_resolver: OutputPathResolver,
         logger: logging.Logger
     ) -> None:
+
+    def cleanup_finished_processes() -> None:
+        finished = []
+        for p in list(running_processes):
+            if p.poll() is None:
+                continue
+
+            success = p.returncode == 0
+            fpath = running_processes.pop(p)
+            tui.update_file_status(
+                fpath,
+                FileStatus.CONVERTED if success else FileStatus.ERROR
+            )
+
+            if success and args.delete:
+                fpath.unlink()
+
+            finished.append(p)
     
     tui = ConversionUI()
     fpaths = scan_directory(args.input, args.target_extensions)
@@ -40,20 +58,7 @@ def handle_directory(
 
     for fpath in fpaths:
         while len(running_processes) >= MAX_PROCESSES:
-            for p in list(running_processes):
-                if p.poll() is None:
-                    continue
-
-                success = p.returncode == 0
-                completed_file = running_processes.pop(p)
-
-                tui.update_file_status(
-                    completed_file, 
-                    FileStatus.CONVERTED if success else FileStatus.ERROR
-                )
-                
-                if success and args.delete:
-                    completed_file.unlink()
+            cleanup_finished_processes()
             time.sleep(0.1)
         
         output_path = path_resolver.resolve(fpath)
@@ -67,19 +72,12 @@ def handle_directory(
         running_processes[process] = fpath
         tui.update_file_status(fpath, FileStatus.CONVERTING)
     
-    # Final cleanup for remaining processes
-    for p, fpath in running_processes.items():
+    for p in list(running_processes):
         p.wait()
-        success = p.returncode == 0
-
-        tui.update_file_status(
-            fpath,
-            FileStatus.CONVERTED if success else FileStatus.ERROR
-        )
-
-        if args.delete and success:
-            fpath.unlink()
+        cleanup_finished_processes()
     
+    tui.force_update()
+    time.sleep(0.5)
     tui.stop()
 
 
