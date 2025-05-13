@@ -3,6 +3,8 @@ import multiprocessing
 from pathlib import Path
 from typing import NamedTuple
 
+from tomp3 import __version__
+
 
 class Args(NamedTuple):
     input_dir: Path
@@ -20,6 +22,8 @@ class Args(NamedTuple):
 
 def parse_args() -> Args:
     parser = argparse.ArgumentParser(
+        prog="tomp3",
+        usage="%(prog)s <input_dir> [OPTIONS]",
         description="Convert audio files to MP3 format with high quality settings."
     )
 
@@ -93,6 +97,12 @@ def parse_args() -> Args:
         "--overwrite",
         action="store_true",
         help="Overwrite existing files"
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}"
     )
 
     args = parser.parse_args()
