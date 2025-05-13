@@ -16,9 +16,10 @@ from .custom_types import ReportType
 from .file_status import FileStatus
 from .files_view import FilesView
 from .progress_tracker import ProgressTracker
+from .ui_protocol import TUIProtocol
 
 
-class ConversionUI:
+class ConversionUI(TUIProtocol):
     def __init__(self, visible_files: int) -> None:
         self._files_view = FilesView(visible_files)
         self._progress_tracker = ProgressTracker()

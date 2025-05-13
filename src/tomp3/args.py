@@ -18,6 +18,7 @@ class Args(NamedTuple):
     quality: int
     sample_rate: int
     overwrite: bool
+    tui: bool
 
 
 def parse_args() -> Args:
@@ -100,6 +101,12 @@ def parse_args() -> Args:
     )
 
     parser.add_argument(
+        "--no-ui",
+        action="store_true",
+        help="Disable the GUI and run in command line mode"
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}"
@@ -127,5 +134,6 @@ def parse_args() -> Args:
         mono=args.mono,
         quality=args.quality,
         sample_rate=args.sample_rate,
-        overwrite=args.overwrite
+        overwrite=args.overwrite,
+        tui=not args.no_ui
     )

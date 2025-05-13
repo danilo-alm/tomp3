@@ -9,6 +9,8 @@ from tomp3.log_config import setup_logger
 from tomp3.path_resolver import OutputPathResolver
 from tomp3.ui import ConversionUI
 from tomp3.ui.file_status import FileStatus
+from tomp3.ui.null_ui import NullUI
+from tomp3.ui.ui_protocol import TUIProtocol
 
 
 def main() -> None:
@@ -37,7 +39,7 @@ def handle_directory(
     if dry_run(args, fpaths, output_fpaths, logger):
         return
 
-    tui = initialize_ui(args)
+    tui: TUIProtocol = initialize_ui(args) if args.tui else NullUI()
     tui.set_file_list(fpaths)
 
     ffmpeg_args = build_ffmpeg_args(args)
@@ -124,7 +126,7 @@ def build_ffmpeg_args(
 
 def cleanup_finished_processes(
     running_processes: dict[subprocess.Popen[bytes], Path],
-    tui: ConversionUI,
+    tui: TUIProtocol,
     args: Args
 ) -> None:
     for process in list(running_processes):
@@ -145,7 +147,7 @@ def cleanup_finished_processes(
 def should_skip_conversion(
         output_path: Path,
         args: Args,
-        tui: ConversionUI,
+        tui: TUIProtocol,
         logger: logging.Logger,
         fpath: Path
     ) -> bool:
