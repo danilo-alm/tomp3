@@ -62,16 +62,22 @@ def handle_directory(
             time.sleep(0.1)
         
         output_path = path_resolver.resolve(fpath)
-        cmd = ["ffmpeg", "-i", str(fpath), *ffmpeg_args, str(output_path)]
 
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        running_processes[process] = fpath
-        tui.update_file_status(fpath, FileStatus.CONVERTING)
-    
+        if output_path.exists() and not args.overwrite:
+            tui.update_file_status(fpath, FileStatus.CONVERTED)
+            logger.info(f"Skipping: {fpath} -> {output_path} as it already exists.")
+        else:
+            cmd = ["ffmpeg", "-i", str(fpath), *ffmpeg_args, str(output_path)]
+            print('Running command:', ' '.join(cmd))
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+            running_processes[process] = fpath
+            tui.update_file_status(fpath, FileStatus.CONVERTING)
+
     for p in list(running_processes):
         p.wait()
         cleanup_finished_processes()
