@@ -14,15 +14,12 @@ from tomp3.ui.file_status import FileStatus
 def main() -> None:
     args = parse_args()
     logger = setup_logger(dry_run=args.dry_run)
-    path_resolver = OutputPathResolver(
-        input_root=args.input,
-        output_root=args.output_dir,
-    )
-    
-    if args.input.is_dir():
+
+    if args.input.exists() and args.input.is_dir():
+        path_resolver = OutputPathResolver(args.input, args.output_dir)
         handle_directory(args, path_resolver, logger)
     else:
-        raise ValueError("Please provide a directory.")
+        raise ValueError("Please provide a valid directory.")
 
 
 def handle_directory(
