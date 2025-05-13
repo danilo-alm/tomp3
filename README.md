@@ -9,6 +9,7 @@
 ## 🚀 Features
 
 - Batch convert `.flac`, `.wav`, and other audio files to MP3
+- Input directory structure is preserved in the output (if applicable)
 - Run multiple FFmpeg processes in parallel for faster conversion
 - Optional deletion of original files
 - Adjustable output bitrate, sample rate, quality, and channel mode (mono/stereo)
@@ -49,17 +50,17 @@ This command will convert all `.flac` and `.wav` files in `~/Music` to mono MP3s
 
 | Argument                  | FFmpeg Equivalent             | Description                                                                |
 | ------------------------- | ----------------------------- | -------------------------------------------------------------------------- |
-| `input`                   | `-i`                          | Directory containing audio files to convert                                |
-| `--output-dir DIR`        | `-o` (implied by destination) | Output directory for converted files. Defaults to same as input            |
-| `--delete`                | *(manual delete)*             | Delete original files after successful conversion                          |
-| `--target-extensions EXT` | N/A                           | Comma-separated list of file extensions to convert (default: `flac,wav`)   |
-| `--max-workers N`         | N/A                           | Number of parallel FFmpeg processes to run (default: `N/2; N=ALL`)                  |
-| `--dry-run`               | N/A                           | Only show which files would be converted, without running FFmpeg           |
-| `--mono`                  | `-ac 1`                       | Convert audio to mono (default is stereo)                                  |
+| `input`                   | `-i`                          | Directory containing audio files to convert |
+| `--output-dir DIR`        | `-o`                          | Output directory for converted files. Defaults to same as input|
+| `--delete`                | *(manual delete)*             | Delete original files after successful conversion|
+| `--target-extensions EXT` | N/A                           | Comma-separated list of file extensions to convert (default: `flac,wav`)|
+| `--max-workers N`         | N/A                           | Number of parallel FFmpeg processes to run (default: `N/2; N=ALL`)|
+| `--dry-run`               | N/A                           | Only show which files would be converted, without running FFmpeg|
+| `--mono`                  | `-ac 1`                       | Convert audio to mono (default is stereo)|
 | `--quality N`             | `-q:a N`                 | LAME quality setting (`0` is best, `9` is worst, default: `0`)             |
-| `--sample-rate SR`        | `-ar SR`                      | Sample rate in Hz for the output audio (default: `44100`)                  |
-| `--bitrate BR`            | `-b:a BR`                     | Set constant output bitrate (e.g., `192k`). Overrides quality if specified |
-| `--overwrite`             | `-y` | Overwrite existing converted files                                         |
+| `--sample-rate SR`        | `-ar SR`                      | Sample rate in Hz for the output audio (default: `44100`)|
+| `--bitrate BR`            | `-b:a BR`                     | Set constant output bitrate (e.g., `192k`). Overrides quality if specified|
+| `--overwrite`             | `-y` | Overwrite existing converted files|
 
 ---
 
