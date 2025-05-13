@@ -5,7 +5,7 @@ from typing import NamedTuple
 
 
 class Args(NamedTuple):
-    input: Path
+    input_dir: Path
     output_dir: Path | None
     delete: bool
     target_extensions: set[str]
@@ -107,7 +107,7 @@ def parse_args() -> Args:
         args.output_dir = args.output_dir.expanduser().resolve()
 
     return Args(
-        input=args.input,
+        input_dir=args.input,
         output_dir=args.output_dir,
         delete=args.delete,
         target_extensions=target_extensions,

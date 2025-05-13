@@ -15,8 +15,8 @@ def main() -> None:
     args = parse_args()
     logger = setup_logger(dry_run=args.dry_run)
 
-    if args.input.exists() and args.input.is_dir():
-        path_resolver = OutputPathResolver(args.input, args.output_dir)
+    if args.input_dir.exists() and args.input_dir.is_dir():
+        path_resolver = OutputPathResolver(args.input_dir, args.output_dir)
         handle_directory(args, path_resolver, logger)
     else:
         raise ValueError("Please provide a valid directory.")
@@ -27,7 +27,7 @@ def handle_directory(
         path_resolver: OutputPathResolver,
         logger: logging.Logger
     ) -> None:
-    fpaths = get_files_to_convert(args.input, args.target_extensions, logger)
+    fpaths = get_files_to_convert(args.input_dir, args.target_extensions, logger)
     output_fpaths = [path_resolver.resolve(fpath) for fpath in fpaths]
 
     if dry_run(args, fpaths, output_fpaths, logger):
