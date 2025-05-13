@@ -46,7 +46,7 @@ def handle_directory(
 
             finished.append(p)
     
-    tui = ConversionUI()
+    tui = ConversionUI(visible_files=max(20, args.max_workers + 5))
     fpaths = scan_directory(args.input, args.target_extensions)
     tui.set_file_list(fpaths)
     logger.info(f"Found {len(fpaths)} files to convert in '{args.input}'.")

@@ -19,7 +19,7 @@ from .progress_tracker import ProgressTracker
 
 
 class ConversionUI:
-    def __init__(self, visible_files: int = 20) -> None:
+    def __init__(self, visible_files: int) -> None:
         self._files_view = FilesView(visible_files)
         self._progress_tracker = ProgressTracker()
         
