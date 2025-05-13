@@ -26,7 +26,7 @@ def parse_args() -> Args:
     parser.add_argument(
         "input",
         type=Path,
-        help="Input file or directory to convert"
+        help="Input directory to convert"
     )
 
     parser.add_argument(
