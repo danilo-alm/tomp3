@@ -34,7 +34,11 @@ class FilesView:
 
     def get_visible(self) -> FileListType:
         with self._lock:
-            return list(islice(self._files.items(), self._visible))
+            visible = list(islice(self._files.items(), self._visible))
+            return sorted(
+                visible,
+                key=lambda x: 0 if x[1] == FileStatus.CONVERTING else 1
+            )
 
     def get_status(self) -> tuple[int, int]:
         with self._lock:
