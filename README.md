@@ -38,10 +38,10 @@ uv run -- python -m tomp3 <input_directory> [OPTIONS]
 ### Example
 
 ```bash
-uv run -- python -m tomp3 ~/Music/flacs --delete --mono --quality 2
+uv run -- python -m tomp3 ~/Music --delete --mono
 ```
 
-This command will convert all `.flac` files in `~/Music/flacs` to high-quality mono MP3s and delete the originals.
+This command will convert all `.flac` and `.wav` files in `~/Music` to mono MP3s and delete the originals.
 
 ---
 
