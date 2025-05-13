@@ -3,7 +3,7 @@ name = "tomp3"
 version = "1.0.1"
 description = "Convert audio files to mp3 format"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 author = "Danilo Almeida"
 dependencies = [
     "rich>=14.0.0",
