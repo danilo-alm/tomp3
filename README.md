@@ -2,6 +2,8 @@
 
 **tomp3** is a command-line tool to batch convert audio files to high-quality MP3 format using FFmpeg. It supports parallel conversion, intelligent file skipping, optional deletion of originals, and customizable audio settings.
 
+[![asciicast](https://asciinema.org/a/MoVkZr3BnlulPpEQAdwirBBf7.svg)](https://asciinema.org/a/MoVkZr3BnlulPpEQAdwirBBf7)
+
 ---
 
 ## 🚀 Features
