@@ -102,6 +102,10 @@ def parse_args() -> Args:
         for ext in args.target_extensions.split(",")
     }
 
+    args.input = args.input.expanduser().resolve()
+    if args.output_dir:
+        args.output_dir = args.output_dir.expanduser().resolve()
+
     return Args(
         input=args.input,
         output_dir=args.output_dir,
