@@ -78,3 +78,14 @@ uv run -- python -m tomp3 <input_directory> --dry-run
 * Files are only processed if the output does not exist (unless `--overwrite` is used)
 * Conversion progress is shown in a clean TUI
 * Original files are deleted only if `--delete` is passed *and* the conversion succeeds
+
+---
+
+## 📝 License
+
+This project is licensed under the **GNU General Public License v3.0**.
+
+You are free to use, modify, and distribute this software under the terms of the license.
+However, any derivative work must also be distributed under the same license.
+
+For the full license text, see the [`LICENSE`](./LICENSE) file or visit [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html).
