@@ -54,7 +54,7 @@ This command will convert all `.flac` and `.wav` files in `~/Music` to mono MP3s
 | `--output-dir DIR`        | `-o`                          | Output directory for converted files. Defaults to same as input|
 | `--delete`                | *(manual delete)*             | Delete original files after successful conversion|
 | `--target-extensions EXT` | N/A                           | Comma-separated list of file extensions to convert (default: `flac,wav`)|
-| `--max-workers N`         | N/A                           | Number of parallel FFmpeg processes to run (default: `N/2; N=ALL`)|
+| `--max-workers N`         | N/A                           | Number of parallel FFmpeg processes to run (default: `CPUs/2`)|
 | `--dry-run`               | N/A                           | Only show which files would be converted, without running FFmpeg|
 | `--mono`                  | `-ac 1`                       | Convert audio to mono (default is stereo)|
 | `--quality N`             | `-q:a N`                 | LAME quality setting (`0` is best, `9` is worst, default: `0`)             |
