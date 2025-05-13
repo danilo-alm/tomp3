@@ -30,36 +30,54 @@ def handle_directory(
         path_resolver: OutputPathResolver,
         logger: logging.Logger
     ) -> None:
+    fpaths = get_files_to_convert(args.input, args.target_extensions, logger)
+    output_fpaths = [path_resolver.resolve(fpath) for fpath in fpaths]
+
+    if dry_run(args, fpaths, output_fpaths, logger):
+        return
+
     tui = initialize_ui(args)
-    fpaths = get_files_to_convert(args.input, args.target_extensions, tui, logger)
+    tui.set_file_list(fpaths)
+
     ffmpeg_args = build_ffmpeg_args(args)
     running_processes: dict[subprocess.Popen[bytes], Path] = {}
 
     def cleanup() -> None:
         cleanup_finished_processes(running_processes, tui, args)
 
-    for fpath in fpaths:
+    for ifpath, ofpath in zip(fpaths, output_fpaths):
         while len(running_processes) >= args.max_workers:
             cleanup()
             time.sleep(0.1)
 
-        output_path = path_resolver.resolve(fpath)
-
-        if should_skip_conversion(output_path, args, tui, logger, fpath):
+        if should_skip_conversion(ofpath, args, tui, logger, ifpath):
             continue
 
-        cmd = ["ffmpeg", "-i", str(fpath), *ffmpeg_args, str(output_path)]
+        cmd = ["ffmpeg", "-i", str(ifpath), *ffmpeg_args, str(ofpath)]
         logger.debug(f"Running command: {' '.join(cmd)}")
 
         process = start_conversion_process(cmd)
-        running_processes[process] = fpath
-        tui.update_file_status(fpath, FileStatus.CONVERTING)
+        running_processes[process] = ifpath
+        tui.update_file_status(ifpath, FileStatus.CONVERTING)
 
     wait_for_all_processes(running_processes, cleanup)
 
     tui.force_update()
     time.sleep(0.5)
     tui.stop()
+
+
+def dry_run(
+        args: Args,
+        fpaths: list[Path],
+        output_fpaths: list[Path],
+        logger: logging.Logger
+    ) -> bool:
+    if args.dry_run:
+        for ifpath, ofpath in zip(fpaths, output_fpaths):
+            logger.info(f"Would convert: {ifpath} -> {ofpath}")
+        return True
+    return False
 
 
 def initialize_ui(args: Args) -> ConversionUI:
@@ -69,11 +87,9 @@ def initialize_ui(args: Args) -> ConversionUI:
 def get_files_to_convert(
         input_dir: Path,
         extensions: set[str],
-        tui: ConversionUI,
         logger: logging.Logger
     ) -> list[Path]:
     fpaths = scan_directory(input_dir, extensions)
-    tui.set_file_list(fpaths)
     logger.info(f"Found {len(fpaths)} files to convert in '{input_dir}'.")
     return fpaths
 

@@ -30,13 +30,10 @@ def setup_logger(
     if dry_run:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
+        formatter = logging.Formatter('%(message)s')
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
-        logger.info("DRY RUNNING!")
+        logger.info("DRY RUNNING! NO FILES WILL BE MODIFIED!")
     
     if exceptions:
         sys.excepthook = lambda exc_type, exc_value, exc_traceback: _exception_handling(
