@@ -2,7 +2,7 @@ import logging
 import subprocess
 import time
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Generator
 
 from tomp3.args import Args, parse_args
 from tomp3.log_config import setup_logger
@@ -16,7 +16,11 @@ def main() -> None:
     logger = setup_logger(dry_run=args.dry_run)
 
     if args.input_dir.exists() and args.input_dir.is_dir():
-        path_resolver = OutputPathResolver(args.input_dir, args.output_dir)
+        path_resolver = OutputPathResolver(
+            args.input_dir,
+            args.output_dir,
+            args.dry_run
+        )
         handle_directory(args, path_resolver, logger)
     else:
         raise ValueError("Please provide a valid directory.")
@@ -28,7 +32,7 @@ def handle_directory(
         logger: logging.Logger
     ) -> None:
     fpaths = get_files_to_convert(args.input_dir, args.target_extensions, logger)
-    output_fpaths = [path_resolver.resolve(fpath) for fpath in fpaths]
+    output_fpaths = (path_resolver.resolve(fpath) for fpath in fpaths)
 
     if dry_run(args, fpaths, output_fpaths, logger):
         return
@@ -67,7 +71,7 @@ def handle_directory(
 def dry_run(
         args: Args,
         fpaths: list[Path],
-        output_fpaths: list[Path],
+        output_fpaths: Generator[Path],
         logger: logging.Logger
     ) -> bool:
     if args.dry_run:
