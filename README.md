@@ -43,7 +43,7 @@ git clone https://github.com/danilo-alm/tomp3 && cd tomp3
 pip install --editable .
 ```
 
-3. **Run the tool with `uv`**:
+Or just run it with `uv`, without installing:
 
 ```bash
 uv run -- python -m tomp3 <input_dir> [OPTIONS]
