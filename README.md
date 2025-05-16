@@ -4,7 +4,6 @@
 
 [![asciicast](https://asciinema.org/a/MoVkZr3BnlulPpEQAdwirBBf7.svg)](https://asciinema.org/a/MoVkZr3BnlulPpEQAdwirBBf7)
 
----
 
 ## 🚀 Features
 
@@ -16,35 +15,40 @@
 - Clean terminal UI with conversion status updates
 - Dry run mode to preview which files will be converted
 
----
 
 ## 🛠 Installation
 
-Make sure you have **Python** and [**FFmpeg**](https://www.ffmpeg.org/) installed.
+### Using `pipx` (recommended) or `pip`
 
-[Install `uv`](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer) if you haven't already:
-
-```bash
-pipx install uv  # (or pip)
-````
-
----
-
-## 📦 Usage
+Install the `tomp3` CLI tool globally with:
 
 ```bash
-uv run -- python -m tomp3 <input_directory> [OPTIONS] 
+pipx install tomp3  # or pip
 ```
 
-### Example
+> 💡 `pipx` is preferred for CLI tools as it keeps dependencies isolated.
+
+
+### 🛠️ From Source (for Development)
+
+1. **Clone the repository**:
 
 ```bash
-uv run -- python -m tomp3 ~/Music --delete --mono
+git clone https://github.com/danilo-alm/tomp3 && cd tomp3
 ```
 
-This command will convert all `.flac` and `.wav` files in `~/Music` to mono MP3s and delete the originals.
+2. **Install in editable mode** (so changes take effect immediately):
 
----
+```bash
+pip install --editable .
+```
+
+3. **Run the tool with `uv`**:
+
+```bash
+uv run -- python -m tomp3 <input_dir> [OPTIONS]
+```
+
 
 ## ⚙️ Command-Line Arguments
 
@@ -61,26 +65,48 @@ This command will convert all `.flac` and `.wav` files in `~/Music` to mono MP3s
 | `--sample-rate SR`        | `-ar SR`                      | Sample rate in Hz for the output audio (default: `44100`)|
 | `--bitrate BR`            | `-b:a BR`                     | Set constant output bitrate (e.g., `192k`). Overrides quality if specified|
 | `--overwrite`             | `-y` | Overwrite existing converted files|
+| `--no-ui` | N/A | Disable UI
 
----
 
-## 🧪 Dry Run Mode
+### 🚀 Usage Examples
 
-You can preview what will be converted without executing any conversions:
+#### 📁 Convert `.flac` files from a folder to MP3s in a different output directory
 
 ```bash
-uv run -- python -m tomp3 <input_directory> --dry-run
+tomp3 ~/Downloads/recordings --output-dir ~/Music/mp3s --target-extensions=flac
 ```
 
----
+#### 🎧 Convert all `.flac` and `.wav` files in `~/Music` to mono MP3s and delete the originals
 
-## 🧼 Clean Conversion Logic
+```bash
+tomp3 ~/Music --delete --mono
+```
 
-* Files are only processed if the output does not exist (unless `--overwrite` is used)
-* Conversion progress is shown in a clean TUI
-* Original files are deleted only if `--delete` is passed *and* the conversion succeeds
+#### 🔍 Preview what would be converted (dry run)
 
----
+```bash
+tomp3 ~/Music --dry-run
+```
+
+#### 🔊 Convert with a specific constant bitrate
+
+```bash
+tomp3 ./vocals --bitrate 192k
+```
+
+#### 🧵 Use 12 FFmpeg processes for parallel conversion
+
+```bash
+tomp3 ./dataset --max-workers=12
+```
+
+#### ⚠️ Overwrite previously converted MP3s
+
+```bash
+tomp3 ./mixes --overwrite
+```
+
+
 
 ## 📝 License
 
