@@ -4,10 +4,25 @@ version = "1.0.2"
 description = "Convert audio files to mp3 format"
 readme = "README.md"
 requires-python = ">=3.10"
-author = "Danilo Almeida"
+authors = [
+  { name="Danilo Almeida", email="cs.daniloalmeida@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "GPL-3.0-only"
+license-files = ["LICEN[CS]E*"]
 dependencies = [
     "rich>=14.0.0",
 ]
+
+[project.scripts]
+tomp3 = "tomp3.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/danilo-alm/tomp3"
+Issues = "https://github.com/danilo-alm/tomp3/issues"
 
 [build-system]
 requires = ["hatchling"]
