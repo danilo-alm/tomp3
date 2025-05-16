@@ -53,7 +53,7 @@ uv run -- python -m tomp3 <input_dir> [OPTIONS]
 ## ⚙️ Command-Line Arguments
 
 | Argument                  | FFmpeg Equivalent             | Description                                                                |
-| ------------------------- | ----------------------------- | -------------------------------------------------------------------------- |
+| :-----------------------: | :---------------------------: |:-------------------------------------------------------------------------: |
 | `input`                   | `-i`                          | Directory containing audio files to convert |
 | `--output-dir DIR`        | `-o`                          | Output directory for converted files. Defaults to same as input|
 | `--delete`                | *(manual delete)*             | Delete original files after successful conversion|
